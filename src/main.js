@@ -1,6 +1,11 @@
 import { createApp } from 'vue'
 import App from './App.vue'
-import router from './router'
 import store from './store'
+import VChart from "vue-echarts";
+import "echarts"
 
-createApp(App).use(store).use(router).mount('#app')
+const app = createApp(App)
+
+app.use(store)
+app.component('v-chart', VChart)
+app.mount('#app')
