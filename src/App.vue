@@ -1,16 +1,20 @@
 <template>
   <div class="app">
-<!--    <select class="app-select" @change="changeSelect">-->
-<!--      <option v-for="item in select" :key="item.key">-->
-<!--        {{ item.value }}-->
-<!--      </option>-->
-<!--    </select>-->
+    <!--    <select class="app-select" @change="changeSelect">-->
+    <!--      <option v-for="item in select" :key="item.key">-->
+    <!--        {{ item.value }}-->
+    <!--      </option>-->
+    <!--    </select>-->
     <v-chart :style="{height: '700px'}" autoresize :option="chartData"/>
+    <div class="app-btn">
+      <button class="btn btn__hight" @click="createNewDot">Higher</button>
+      <button class="btn btn__lower" @click="createNewDot">Lower</button>
+    </div>
   </div>
 </template>
 <script>
 
-import {ref} from "vue";
+import { ref} from "vue";
 import * as echarts from 'echarts'
 import {selectKeys, selectValues} from "@/utils/socketLinks/socketLinks";
 import {graphicColors} from "@/UI/UI-colors/graphic-colors";
@@ -21,6 +25,11 @@ export default {
     const labels = ref([])
     const dataPoints = ref([])
     const data = ref([])
+
+    const clickPosition = ref({
+      x: 0,
+      y: 0
+    })
 
     const select = ref([
       {key: selectKeys.BTC_KEY, value: selectValues.BTC_KEY_VALUE},
@@ -52,7 +61,7 @@ export default {
       const date = new Date()
       const hours = date.getHours()
       const minuts = date.getMinutes() < 9 ? '0' + date.getMinutes() : date.getMinutes()
-      const seconds = date.getSeconds()
+      const seconds = date.getSeconds() < 9 ? '0' + date.getSeconds() : date.getSeconds()
       return hours + ':' + minuts + ':' + seconds
     }
 
@@ -65,20 +74,33 @@ export default {
     }
 
     const grabData = (data) => {
-      const price = data.k.o
-      dataPoints.value = [...dataPoints.value, price]
+      price.value = data.k.o
+      dataPoints.value = [...dataPoints.value, price.value]
       chartData.value.series[0].data = dataPoints.value
-      chartData.value.series[0].markLine.data[0].yAxis = price // add horizontal line with current price
-      // changeSelect
-      chartData.value.series[0].markPoint.data[0].yAxis = price // add  point
+      chartData.value.series[0].markLine.data[0].yAxis = price.value // add horizontal line with current price
+      chartData.value.series[0].markPoint.data[0].yAxis = price.value // add  point to end line
+    }
+
+    const getPos = () => {
+      clickPosition.value = {
+        x: chartData.value.series[0].markPoint.data[0].xAxis = dataConvert(),
+        y: chartData.value.series[0].markPoint.data[0].yAxis = price.value
+      }
+    }
+
+    const createNewDot = () => {
+
+      getPos();
+      chartData.value.series[0].markPoint.data[1].yAxis = clickPosition.value.y // add dot
+      chartData.value.series[0].markPoint.data[1].xAxis = clickPosition.value.x // add dot
+      chartData.value.series[0].markLine.data[3].yAxis = clickPosition.value.y // create horizontal line
 
     }
 
     const generateLabels = () => {
       labels.value = [...labels.value, dataConvert()]
       chartData.value.xAxis.data = labels.value
-      //changeSelect
-      chartData.value.series[0].markPoint.data[0].xAxis = dataConvert() // add point
+      chartData.value.series[0].markPoint.data[0].xAxis = dataConvert() // add point to end line
     }
 
     const calculateMinAxis = () => {
@@ -114,6 +136,7 @@ export default {
       },
       xAxis: {
         type: 'category',
+        boundaryGap: false,
         axisLabel: { //add axisX text color
           color: 'white'
         },
@@ -129,33 +152,43 @@ export default {
         type: 'value',
         min: null,
         axisLabel: { //add axisY text color
-          color: 'white'
+          color: 'white',
         },
         splitLine: {
           show: true,
           lineStyle: {
-            color: graphicColors.HORIZONTAL_LINES
+            color: graphicColors.HORIZONTAL_LINES,
           },
-        }
+        },
       },
       series: [{
         type: 'line',
         showSymbol: false,
         symbol: 'none',
         data: [],
-        markPoint: { //add point to line
+        markPoint: { // add point to line
           data: [
             {
               yAxis: null,
-              xAxis: null
+              xAxis: null,
+              animation: true,
+              symbol: 'circle',
+              symbolSize: 8,
+              itemStyle: {
+                color: '#7ABD63'
+              },
             },
+            {
+              yAxis: null,
+              xAxis: null,
+              animation: false,
+              symbol: 'circle',
+              symbolSize: 8,
+              itemStyle: {
+                color: '#7ABD63'
+              },
+            }
           ],
-          animation: true,
-          symbol: 'circle',
-          symbolSize: 8,
-          itemStyle: {
-            color: '#7ABD63'
-          },
         },
         lineStyle: {
           color: graphicColors.GRAPHIC_LINE
@@ -176,18 +209,19 @@ export default {
         markLine: {
           symbol: ['none', 'none'],
           data: [
+              // firsrt
             {
               yAxis: null,
-              tooltip:{
+              tooltip: {
                 show: false,
               },
               label: {
                 show: true,
                 distance: 7,
-                color: "black",
-                backgroundColor: "white",
+                color: "#f4f6bb",
+                backgroundColor: "#B9A1FF",
                 position: "end",
-                padding: [7, 9, 9, 7],
+                padding: [7, 12, 9, 7],
                 formatter: (params) => {
                   return `${params.data.value}`;
                 },
@@ -199,28 +233,66 @@ export default {
                 color: '#B09EFF',
               },
             },
+              //end first
+              // second
             {
+              lineStyle: {
+                type: "dashed",
+                width: 1,
+                color: 'gray',
+              },
               label: {
                 position: 'end',
                 formatter: (params) => {
-                  return `Average: ${params.data.value}`
-                }
+                  return `AVG: ${params.data.value}`
+                },
+                color: 'white'
               },
               type: 'average',
-              tooltip:{
+              tooltip: {
                 show: false,
               }
             },
+              //end second
+              // third
             {
               label: {
                 position: 'end',
                 formatter: (params) => {
-                  return `Max Price: ${params.data.value}`
-                }
+                  return `MAX: ${params.data.value}`
+                },
+                color: 'white'
               },
               type: 'max',
-              tooltip:{
+              tooltip: {
                 show: false,
+              },
+              lineStyle: {
+                type: "dashed",
+                width: 1,
+                color: 'gray',
+              },
+            },
+              //end third
+              // fourth
+            {
+              yAxis: 0,
+              tooltip: {
+                show: true
+              },
+              lineStyle: {
+                type: "dashed",
+                width: 1,
+                color: 'green',
+              },
+              label: {
+                show: true,
+                distance: 7,
+                color: "white",
+                position: "end",
+                formatter: (params) => {
+                  return `${params.data.value}`;
+                },
               }
             },
           ],
@@ -228,13 +300,38 @@ export default {
       }]
     })
 
-    return {price, chartData, changeSelect, select}
+    return {price, chartData, changeSelect, select, getPos, createNewDot}
   }
-}
+  }
 </script>
 <style lang="scss">
 .app {
   background: #151F30;
-  height: 1500px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
+
+.app-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.btn{
+  cursor: pointer;
+  padding: 40px 30px;
+  border: none;
+  border-radius: 2px;
+  font-size: 18px;
+  color: white;
+  margin-right: 10px;
+  margin-bottom: 10px;
+}
+.btn__hight{
+  background: #F2D857;
+}
+.btn__lower{
+  background: #D96055;
+}
+
 </style>
