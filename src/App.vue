@@ -5,7 +5,7 @@
     <!--        {{ item.value }}-->
     <!--      </option>-->
     <!--    </select>-->
-    <v-chart :style="{height: '700px' ,}" autoresize :option="chartData"/>
+    <v-chart :style="{height: '100%', paddingTop: '40px'}" autoresize :option="chartData"/>
     <div class="container-btn">
       <button class="btn btn__hight" @click="createNewDot">Higher</button>
       <button class="btn btn__lower" @click="createNewDot">Lower</button>
@@ -107,7 +107,7 @@ export default {
     }
 
     const generateLabels = () => {
-      labels.value = [...labels.value, dataConvert(),]
+      labels.value = [...labels.value, dataConvert()]
       chartData.value.xAxis.data = labels.value
       chartData.value.series[0].markPoint.data[0].xAxis = dataConvert() // add point to end line
     }
@@ -121,6 +121,7 @@ export default {
       title: {
         text: 'BTC/USDT',
         subtext: '',
+        padding: [0,0,0,90],
         subtextStyle: {
           color: '#BABAD2',
           fontSize: 16,
@@ -186,7 +187,7 @@ export default {
               xAxis: null,
               animation: true,
               symbol: 'circle',
-              symbolSize: 8,
+              symbolSize: 6,
               itemStyle: {
                 color: '#7ABD63',
               },
@@ -196,7 +197,7 @@ export default {
               xAxis: null,
               animation: false,
               symbol: 'circle',
-              symbolSize: 8,
+              symbolSize: 6,
               itemStyle: {
                 color: '#7ABD63'
               },
@@ -320,20 +321,11 @@ export default {
 
     onMounted(async () => {
       const {data} = await axios.get('https://api.binance.com/api/v1/klines?symbol=BTCUSDT&interval=1s')
-      const startedGraphicArray = []
-
-      data.forEach((item, index) => {
+      data.forEach(([xAxis, yAxis], index) => { //create 2 minuts graphic line
         if (index < 120) {
-          startedGraphicArray.push(item)
+          dataPoints.value.push(yAxis);
+          labels.value.push(dataConvert(xAxis))
         }
-      })
-
-      dataPoints.value =  startedGraphicArray.map((item)=>{
-        return item[1]
-      })
-
-      labels.value = startedGraphicArray.map((item)=>{
-        return dataConvert(item[0])
       })
     })
 
@@ -353,6 +345,7 @@ html, body {
   height: inherit;
 }
 .container {
+  overflow-y: auto;
   height: 100%;
   background: #151F30;
   display: flex;
