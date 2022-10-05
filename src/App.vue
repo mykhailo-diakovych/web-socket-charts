@@ -5,7 +5,7 @@
     <!--        {{ item.value }}-->
     <!--      </option>-->
     <!--    </select>-->
-    <v-chart :style="{height: '700px'}" autoresize :option="chartData"/>
+    <v-chart :style="{height: '700px' ,}" autoresize :option="chartData"/>
     <div class="app-btn">
       <button class="btn btn__hight" @click="createNewDot">Higher</button>
       <button class="btn btn__lower" @click="createNewDot">Lower</button>
@@ -18,6 +18,7 @@ import { ref} from "vue";
 import * as echarts from 'echarts'
 import {selectKeys, selectValues} from "@/utils/socketLinks/socketLinks";
 import {graphicColors} from "@/UI/UI-colors/graphic-colors";
+import {formatNumber} from "@/utils/formater/formatFloat";
 
 export default {
   setup() {
@@ -74,11 +75,12 @@ export default {
     }
 
     const grabData = (data) => {
-      price.value = data.k.o
+      price.value = formatNumber(data.k.o,4)
       dataPoints.value = [...dataPoints.value, price.value]
       chartData.value.series[0].data = dataPoints.value
-      chartData.value.series[0].markLine.data[0].yAxis = price.value // add horizontal line with current price
-      chartData.value.series[0].markPoint.data[0].yAxis = price.value // add  point to end line
+      chartData.value.series[0].markLine.data[0].yAxis =  price.value // add horizontal line with current price
+      chartData.value.series[0].markPoint.data[0].yAxis = price.value// add  point to end line
+      chartData.value.title.subtext = formatNumber(+price.value,4) // show price sub pair/name
     }
 
     const getPos = () => {
@@ -93,12 +95,12 @@ export default {
       getPos();
       chartData.value.series[0].markPoint.data[1].yAxis = clickPosition.value.y // add dot
       chartData.value.series[0].markPoint.data[1].xAxis = clickPosition.value.x // add dot
-      chartData.value.series[0].markLine.data[3].yAxis = clickPosition.value.y // create horizontal line
+      chartData.value.series[0].markLine.data[3].yAxis =  clickPosition.value.y  // create horizontal line
 
     }
 
     const generateLabels = () => {
-      labels.value = [...labels.value, dataConvert()]
+      labels.value = [...labels.value, dataConvert(), ]
       chartData.value.xAxis.data = labels.value
       chartData.value.series[0].markPoint.data[0].xAxis = dataConvert() // add point to end line
     }
@@ -111,6 +113,11 @@ export default {
     const chartData = ref({
       title: {
         text: 'BTC/USDT',
+        subtext: '',
+        subtextStyle:{
+          color: '#fff',
+          fontSize: 16,
+        },
         textStyle: {
           color: '#fff'
         }
@@ -209,7 +216,7 @@ export default {
         markLine: {
           symbol: ['none', 'none'],
           data: [
-              // firsrt
+              // first
             {
               yAxis: null,
               tooltip: {
@@ -217,15 +224,15 @@ export default {
               },
               label: {
                 show: true,
-                distance: 7,
+                distance: 4,
                 color: "#f4f6bb",
                 backgroundColor: "#B9A1FF",
                 position: "end",
                 padding: [7, 12, 9, 7],
                 formatter: (params) => {
-                  return `${params.data.value}`;
+                  return `${formatNumber(+params.data.value,4)}`;
                 },
-                fontSize: 12,
+                fontSize: 12
               },
               lineStyle: {
                 type: "solid",
@@ -244,7 +251,7 @@ export default {
               label: {
                 position: 'end',
                 formatter: (params) => {
-                  return `AVG: ${params.data.value}`
+                  return `AVG: ${formatNumber(params.data.value,4)}`
                 },
                 color: 'white'
               },
@@ -259,7 +266,7 @@ export default {
               label: {
                 position: 'end',
                 formatter: (params) => {
-                  return `MAX: ${params.data.value}`
+                  return `MAX: ${formatNumber(+params.data.value,4)}`
                 },
                 color: 'white'
               },
@@ -291,7 +298,7 @@ export default {
                 color: "white",
                 position: "end",
                 formatter: (params) => {
-                  return `${params.data.value}`;
+                  return `${formatNumber(+params.data.value,4)}`;
                 },
               }
             },
@@ -319,7 +326,7 @@ export default {
 }
 .btn{
   cursor: pointer;
-  padding: 40px 30px;
+  padding: 20px 30px;
   border: none;
   border-radius: 2px;
   font-size: 18px;
@@ -328,10 +335,10 @@ export default {
   margin-bottom: 10px;
 }
 .btn__hight{
-  background: #F2D857;
+  background: #35A947;
 }
 .btn__lower{
-  background: #D96055;
+  background: #E34828;
 }
 
 </style>
