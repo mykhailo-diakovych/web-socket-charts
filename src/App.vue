@@ -75,12 +75,12 @@ export default {
     }
 
     const grabData = (data) => {
-      price.value = formatNumber(data.k.o,4)
+      price.value = formatNumber(data.k.o, 3)
       dataPoints.value = [...dataPoints.value, price.value]
       chartData.value.series[0].data = dataPoints.value
       chartData.value.series[0].markLine.data[0].yAxis =  price.value // add horizontal line with current price
       chartData.value.series[0].markPoint.data[0].yAxis = price.value// add  point to end line
-      chartData.value.title.subtext = formatNumber(+price.value,4) // show price sub pair/name
+      chartData.value.title.subtext = formatNumber(+price.value,3) // show price sub pair/name
     }
 
     const getPos = () => {
@@ -115,7 +115,7 @@ export default {
         text: 'BTC/USDT',
         subtext: '',
         subtextStyle:{
-          color: '#fff',
+          color: '#BABAD2',
           fontSize: 16,
         },
         textStyle: {
@@ -209,7 +209,7 @@ export default {
             },
             {
               offset: 1,
-              color: graphicColors.GRAPHIC_SHADOW[0]
+              color: graphicColors.GRAPHIC_SHADOW[1]
             }
           ])
         },
@@ -230,7 +230,7 @@ export default {
                 position: "end",
                 padding: [7, 12, 9, 7],
                 formatter: (params) => {
-                  return `${formatNumber(+params.data.value,4)}`;
+                  return `${formatNumber(+params.data.value,3)}`;
                 },
                 fontSize: 12
               },
@@ -251,7 +251,7 @@ export default {
               label: {
                 position: 'end',
                 formatter: (params) => {
-                  return `AVG: ${formatNumber(params.data.value,4)}`
+                  return `AVG: ${formatNumber(params.data.value,3)}`
                 },
                 color: 'white'
               },
@@ -266,7 +266,7 @@ export default {
               label: {
                 position: 'end',
                 formatter: (params) => {
-                  return `MAX: ${formatNumber(+params.data.value,4)}`
+                  return `MAX: ${formatNumber(+params.data.value,3)}`
                 },
                 color: 'white'
               },
@@ -298,7 +298,7 @@ export default {
                 color: "white",
                 position: "end",
                 formatter: (params) => {
-                  return `${formatNumber(+params.data.value,4)}`;
+                  return `${formatNumber(+params.data.value,3)}`;
                 },
               }
             },
@@ -333,6 +333,7 @@ export default {
   color: white;
   margin-right: 10px;
   margin-bottom: 10px;
+  width: 7.063rem;
 }
 .btn__hight{
   background: #35A947;
