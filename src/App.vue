@@ -1,12 +1,12 @@
 <template>
-  <div class="app">
+  <div class="container">
     <!--    <select class="app-select" @change="changeSelect">-->
     <!--      <option v-for="item in select" :key="item.key">-->
     <!--        {{ item.value }}-->
     <!--      </option>-->
     <!--    </select>-->
     <v-chart :style="{height: '700px' ,}" autoresize :option="chartData"/>
-    <div class="app-btn">
+    <div class="container-btn">
       <button class="btn btn__hight" @click="createNewDot">Higher</button>
       <button class="btn btn__lower" @click="createNewDot">Lower</button>
     </div>
@@ -14,11 +14,12 @@
 </template>
 <script>
 
-import { ref} from "vue";
+import {onMounted, ref} from "vue";
 import * as echarts from 'echarts'
 import {selectKeys, selectValues} from "@/utils/socketLinks/socketLinks";
 import {graphicColors} from "@/UI/UI-colors/graphic-colors";
 import {formatNumber} from "@/utils/formater/formatFloat";
+import axios from 'axios'
 
 export default {
   setup() {
@@ -78,9 +79,9 @@ export default {
       price.value = formatNumber(data.k.o, 3)
       dataPoints.value = [...dataPoints.value, price.value]
       chartData.value.series[0].data = dataPoints.value
-      chartData.value.series[0].markLine.data[0].yAxis =  price.value // add horizontal line with current price
+      chartData.value.series[0].markLine.data[0].yAxis = price.value // add horizontal line with current price
       chartData.value.series[0].markPoint.data[0].yAxis = price.value// add  point to end line
-      chartData.value.title.subtext = formatNumber(+price.value,3) // show price sub pair/name
+      chartData.value.title.subtext = formatNumber(Number(price.value), 3) // show price sub pair/name
     }
 
     const getPos = () => {
@@ -89,18 +90,24 @@ export default {
         y: chartData.value.series[0].markPoint.data[0].yAxis = price.value
       }
     }
-
-    const createNewDot = () => {
-
+    const createNewDot = (e) => {
+      const value = e.target.textContent
       getPos();
+      if(value==='Higher'){ // if click green button
+        chartData.value.series[0].markLine.data[3].lineStyle.color = '#35A947' //create green line
+        chartData.value.series[0].markPoint.data[1].itemStyle.color = '#35A947' // create green dot
+      }else{  // if click red button
+        chartData.value.series[0].markLine.data[3].lineStyle.color = '#E34828' // create red line
+        chartData.value.series[0].markPoint.data[1].itemStyle.color = '#E34828' // create red dot
+      }
       chartData.value.series[0].markPoint.data[1].yAxis = clickPosition.value.y // add dot
       chartData.value.series[0].markPoint.data[1].xAxis = clickPosition.value.x // add dot
-      chartData.value.series[0].markLine.data[3].yAxis =  clickPosition.value.y  // create horizontal line
+      chartData.value.series[0].markLine.data[3].yAxis = clickPosition.value.y  // create horizontal line
 
     }
 
     const generateLabels = () => {
-      labels.value = [...labels.value, dataConvert(), ]
+      labels.value = [...labels.value, dataConvert(),]
       chartData.value.xAxis.data = labels.value
       chartData.value.series[0].markPoint.data[0].xAxis = dataConvert() // add point to end line
     }
@@ -114,7 +121,7 @@ export default {
       title: {
         text: 'BTC/USDT',
         subtext: '',
-        subtextStyle:{
+        subtextStyle: {
           color: '#BABAD2',
           fontSize: 16,
         },
@@ -130,7 +137,6 @@ export default {
         },
       ],
       tooltip: {
-        // trigger: 'axis',
         axisPointer: {
           type: 'cross',
           crossStyle: {
@@ -182,7 +188,7 @@ export default {
               symbol: 'circle',
               symbolSize: 8,
               itemStyle: {
-                color: '#7ABD63'
+                color: '#7ABD63',
               },
             },
             {
@@ -216,7 +222,7 @@ export default {
         markLine: {
           symbol: ['none', 'none'],
           data: [
-              // first
+            // first
             {
               yAxis: null,
               tooltip: {
@@ -231,7 +237,7 @@ export default {
                 position: "end",
                 padding: [7, 12, 9, 7],
                 formatter: (params) => {
-                  return `${formatNumber(+params.data.value,3)}`;
+                  return `${formatNumber(Number(params.data.value), 3)}`;
                 },
                 fontSize: 12
               },
@@ -241,8 +247,8 @@ export default {
                 color: '#B09EFF',
               },
             },
-              //end first
-              // second
+            //end first
+            // second
             {
               lineStyle: {
                 type: "dashed",
@@ -253,7 +259,7 @@ export default {
                 opacity: 0.3,
                 position: 'end',
                 formatter: (params) => {
-                  return `AVG: ${formatNumber(params.data.value,3)}`
+                  return `AVG: ${formatNumber(params.data.value, 3)}`
                 },
                 color: 'white'
               },
@@ -262,14 +268,14 @@ export default {
                 show: false,
               }
             },
-              //end second
-              // third
+            //end second
+            // third
             {
               label: {
                 opacity: 0.3,
                 position: 'end',
                 formatter: (params) => {
-                  return `MAX: ${formatNumber(+params.data.value,3)}`
+                  return `MAX: ${formatNumber(Number(params.data.value), 3)}`
                 },
                 color: 'white'
               },
@@ -283,8 +289,8 @@ export default {
                 color: 'gray',
               },
             },
-              //end third
-              // fourth
+            //end third
+            // fourth
             {
               yAxis: 0,
               tooltip: {
@@ -293,7 +299,7 @@ export default {
               lineStyle: {
                 type: "dashed",
                 width: 1,
-                color: 'green',
+                color: null,
               },
 
               label: {
@@ -303,7 +309,7 @@ export default {
                 color: "white",
                 position: "end",
                 formatter: (params) => {
-                  return `${formatNumber(+params.data.value,3)}`;
+                  return `${formatNumber(Number(params.data.value), 3)}`;
                 },
               }
             },
@@ -312,24 +318,55 @@ export default {
       }]
     })
 
+    onMounted(async () => {
+      const {data} = await axios.get('https://api.binance.com/api/v1/klines?symbol=BTCUSDT&interval=1s')
+      const startedGraphicArray = []
+
+      data.forEach((item, index) => {
+        if (index < 120) {
+          startedGraphicArray.push(item)
+        }
+      })
+
+      dataPoints.value =  startedGraphicArray.map((item)=>{
+        return item[1]
+      })
+
+      labels.value = startedGraphicArray.map((item)=>{
+        return dataConvert(item[0])
+      })
+    })
+
     return {price, chartData, changeSelect, select, getPos, createNewDot}
   }
-  }
+}
 </script>
 <style lang="scss">
-.app {
+html, body {
+  padding: 0;
+  margin: 0;
+  height: 100%;
+  width: 100%;
+  box-sizing: border-box;
+}
+#app {
+  height: inherit;
+}
+.container {
+  height: 100%;
   background: #151F30;
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
-.app-btn {
+.container-btn {
   display: flex;
   flex-direction: column;
   align-items: center;
 }
-.btn{
+
+.btn {
   cursor: pointer;
   padding: 20px 30px;
   border: none;
@@ -340,10 +377,12 @@ export default {
   margin-bottom: 10px;
   width: 7.063rem;
 }
-.btn__hight{
+
+.btn__hight {
   background: #35A947;
 }
-.btn__lower{
+
+.btn__lower {
   background: #E34828;
 }
 
