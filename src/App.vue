@@ -223,6 +223,7 @@ export default {
                 show: false,
               },
               label: {
+                opacity: 1,
                 show: true,
                 distance: 4,
                 color: "#f4f6bb",
@@ -249,6 +250,7 @@ export default {
                 color: 'gray',
               },
               label: {
+                opacity: 0.3,
                 position: 'end',
                 formatter: (params) => {
                   return `AVG: ${formatNumber(params.data.value,3)}`
@@ -264,6 +266,7 @@ export default {
               // third
             {
               label: {
+                opacity: 0.3,
                 position: 'end',
                 formatter: (params) => {
                   return `MAX: ${formatNumber(+params.data.value,3)}`
@@ -285,15 +288,17 @@ export default {
             {
               yAxis: 0,
               tooltip: {
-                show: true
+                show: false
               },
               lineStyle: {
                 type: "dashed",
                 width: 1,
                 color: 'green',
               },
+
               label: {
                 show: true,
+                opacity: 0.4,
                 distance: 7,
                 color: "white",
                 position: "end",
