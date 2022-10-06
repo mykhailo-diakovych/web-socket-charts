@@ -1,129 +1,109 @@
 <template>
-  <div class="container">
-    <!--    <select class="app-select" @change="changeSelect">-->
-    <!--      <option v-for="item in select" :key="item.key">-->
-    <!--        {{ item.value }}-->
-    <!--      </option>-->
-    <!--    </select>-->
-    <v-chart :style="{height: '100%', paddingTop: '40px'}" autoresize :option="chartData"/>
-    <div class="container-btn">
-      <button class="btn btn__hight" @click="createNewDot">Higher</button>
-      <button class="btn btn__lower" @click="createNewDot">Lower</button>
-    </div>
-  </div>
+  <main class="h-full flex w-full bg-[#151f31] justify-between items-center overflow-y-auto">
+   <template v-if="!loading">
+     <v-chart class="w-full h-full pt-10" autoresize :option="chartData"/>
+   </template>
+    <template v-else>
+      <div class="w-full flex justify-center">
+        <MyLoader></MyLoader>
+      </div>
+    </template>
+    <aside class="  flex flex-col items-center gap-3 justify-between mr-[20px]">
+      <select v-model="selectedValue" class="w-full p-[7px] text-white bg-[#151f31] border-[#3e3f45] border-2">
+        <option v-for="item in allSelectOptions" :key="item.value" :value="item.value" >
+          {{ item.title }}
+        </option>
+      </select>
+      <div class="flex flex-col justify-between items-center text-[#8f8281]">
+        <p>Balance:</p>
+        <p class="text-blue-100 text-[19px]">{{ balance.toFixed(2) }} usd</p>
+      </div>
+      <div class="flex flex-col justify-between items-center text-[#8f8281]">
+        <p>Timer:</p>
+        <p class="text-blue-100 text-[19px]">{{ time }}</p>
+      </div>
+      <div class="flex flex-col gap-3">
+        <div class="flex border-2 border-[#3e3f45]  text-[#8f8281] rounded-md p-2">
+          <div class="w-9/12 flex flex-col">
+            <label>Sum</label>
+            <input :maxlength="5" v-model="moneyBet"
+                   class="w-full text-white bg-[#151f31] pl-[3px] focus:outline-none focus:none cursor-pointer "
+                   type="number">
+          </div>
+          <div class="w-3/12 flex flex-col">
+            <button class="text-[18px]" @click="plusMoneyBet">+</button>
+            <button class="text-[18px]" @click="minusMoneyBet">-</button>
+          </div>
+        </div>
+        <div class="flex border-2 border-[#3e3f45]  text-[#8f8281] rounded-md p-2">
+          <div class="w-9/12 flex flex-col">
+            <label>Time</label>
+            <input v-model='timeBet'
+                   class="w-full text-white bg-[#151f31] pl-[3px] focus:outline-none focus:none cursor-pointer "
+                   type="number">
+          </div>
+          <div class="w-3/12 flex flex-col">
+            <button class="text-[18px]" @click="plusTimeBet">+</button>
+            <button class="text-[18px]" @click="minusTimeBet">-</button>
+          </div>
+        </div>
+      </div>
+      <div class="flex flex-col items-center gap-2  justify-between text-green-500">
+        <p class="text-white text-[14px]">Profit ?</p>
+        <p class="text-5xl">+86%</p>
+        <p class="text-[18px] font-medium">+{{ profitFormulaCurrency(moneyBet) }} dollars</p>
+      </div>
+      <div class="flex flex-col items-center w-full">
+        <button class="button button__hight" @click="positiveNewDot">Higher</button>
+        <button class="button button__lower" @click="negativeNewDot">Lower</button>
+      </div>
+    </aside>
+  </main>
 </template>
 <script>
 
-import {onMounted, ref} from "vue";
+import {computed, onMounted, ref, watch} from "vue";
 import * as echarts from 'echarts'
 import {selectKeys, selectValues} from "@/utils/socketLinks/socketLinks";
 import {graphicColors} from "@/UI/UI-colors/graphic-colors";
 import {formatNumber} from "@/utils/formater/formatFloat";
 import axios from 'axios'
+import {dateConvert} from "@/utils/dataConvert";
+import dayjs from "dayjs";
+import {profitFormulaCurrency} from "@/utils/formater/profitFormula";
+import MyLoader from "@/componetns/UI/MyLoader";
 
 export default {
+  components: {MyLoader},
   setup() {
-    const price = ref(0)
-    const labels = ref([])
-    const dataPoints = ref([])
-    const data = ref([])
-
-    const clickPosition = ref({
+    /// ui
+    const moneyBet = ref(1)
+    const timeBet = ref(4)
+    const balance = ref(10000)
+    const loading = ref(false)
+    ///
+    const price = ref(0)  // price cryprocurrency for labels
+    const labels = ref([]) // all xAxis
+    const dataPoints = ref([]) // all yAxis
+    const data = ref([]) // data which return webscoket
+    const time = ref(0) // timer
+    const click = ref(false) // need for buttons
+    const clickPosition = ref({ // need for create dots
       x: 0,
       y: 0
     })
 
-    const select = ref([
-      {key: selectKeys.BTC_KEY, value: selectValues.BTC_KEY_VALUE},
-      {key: selectKeys.ETH_KEY, value: selectValues.ETH_KEY_VALUE},
-      {key: selectKeys.SOL_KEY, value: selectValues.SOL_KEY_VALUE},
-      {key: selectKeys.BNB_KEY, value: selectValues.BNB_KEY_VALUE},
-    ])
-
-    const selectedValue = ref('btc')
-
-    const changeSelect = (e) => {
-      switch (e.target.value) {
-        case selectValues.BTC_KEY_VALUE:
-          selectedValue.value = selectKeys.BTC_KEY
-          break;
-        case selectValues.ETH_KEY_VALUE:
-          selectedValue.value = selectKeys.ETH_KEY
-          break;
-        case selectValues.SOL_KEY_VALUE:
-          selectedValue.value = selectKeys.SOL_KEY
-          break;
-        case selectValues.BNB_KEY_VALUE:
-          selectedValue.value = selectKeys.BNB_KEY
-          break;
-      }
-    }
-
-    const dataConvert = () => {
-      const date = new Date()
-      const hours = date.getHours()
-      const minuts = date.getMinutes() < 9 ? '0' + date.getMinutes() : date.getMinutes()
-      const seconds = date.getSeconds() < 9 ? '0' + date.getSeconds() : date.getSeconds()
-      return hours + ':' + minuts + ':' + seconds
-    }
-
-    let ws = new WebSocket(`wss://stream.binance.com:9443/ws/${selectedValue.value}usdt@kline_1s`)
-    ws.onmessage = (event) => {
-      data.value = JSON.parse(event.data)
-      grabData(data.value)
-      generateLabels()
-      calculateMinAxis()
-    }
-
-    const grabData = (data) => {
-      price.value = formatNumber(data.k.o, 3)
-      dataPoints.value = [...dataPoints.value, price.value]
-      chartData.value.series[0].data = dataPoints.value
-      chartData.value.series[0].markLine.data[0].yAxis = price.value // add horizontal line with current price
-      chartData.value.series[0].markPoint.data[0].yAxis = price.value// add  point to end line
-      chartData.value.title.subtext = formatNumber(Number(price.value), 3) // show price sub pair/name
-    }
-
-    const getPos = () => {
-      clickPosition.value = {
-        x: chartData.value.series[0].markPoint.data[0].xAxis = dataConvert(),
-        y: chartData.value.series[0].markPoint.data[0].yAxis = price.value
-      }
-    }
-    const createNewDot = (e) => {
-      const value = e.target.textContent
-      getPos();
-      if(value==='Higher'){ // if click green button
-        chartData.value.series[0].markLine.data[3].lineStyle.color = '#35A947' //create green line
-        chartData.value.series[0].markPoint.data[1].itemStyle.color = '#35A947' // create green dot
-      }else{  // if click red button
-        chartData.value.series[0].markLine.data[3].lineStyle.color = '#E34828' // create red line
-        chartData.value.series[0].markPoint.data[1].itemStyle.color = '#E34828' // create red dot
-      }
-      chartData.value.series[0].markPoint.data[1].yAxis = clickPosition.value.y // add dot
-      chartData.value.series[0].markPoint.data[1].xAxis = clickPosition.value.x // add dot
-      chartData.value.series[0].markLine.data[3].yAxis = clickPosition.value.y  // create horizontal line
-
-    }
-
-    const generateLabels = () => {
-      labels.value = [...labels.value, dataConvert()]
-      chartData.value.xAxis.data = labels.value
-      chartData.value.series[0].markPoint.data[0].xAxis = dataConvert() // add point to end line
-    }
-
-    const calculateMinAxis = () => {
-      chartData.value.yAxis.min = Math.min(...chartData.value.series[0].data)
-      return chartData.value.yAxis.min
-    }
-
+    const winnerBetDots = ref([]) //arr where only dots which wins
+    const winnerBet = ref([]) // arr where push users bets
     const chartData = ref({
       title: {
         text: 'BTC/USDT',
         subtext: '',
-        padding: [0,0,0,90],
+        left: 'center',
+        padding: [0, 0, 0, 90],
         subtextStyle: {
           color: '#BABAD2',
+
           fontSize: 16,
         },
         textStyle: {
@@ -191,17 +171,8 @@ export default {
               itemStyle: {
                 color: '#7ABD63',
               },
+
             },
-            {
-              yAxis: null,
-              xAxis: null,
-              animation: false,
-              symbol: 'circle',
-              symbolSize: 6,
-              itemStyle: {
-                color: '#7ABD63'
-              },
-            }
           ],
         },
         lineStyle: {
@@ -221,6 +192,8 @@ export default {
           ])
         },
         markLine: {
+          symbolRotate: 90,
+          symbolSize: [28, 20],
           symbol: ['none', 'none'],
           data: [
             // first
@@ -238,7 +211,7 @@ export default {
                 position: "end",
                 padding: [7, 12, 9, 7],
                 formatter: (params) => {
-                  return `${formatNumber(Number(params.data.value), 3)}`;
+                  return `${formatNumber(Number(params.data.value))}`;
                 },
                 fontSize: 12
               },
@@ -260,7 +233,7 @@ export default {
                 opacity: 0.3,
                 position: 'end',
                 formatter: (params) => {
-                  return `AVG: ${formatNumber(params.data.value, 3)}`
+                  return `AVG: ${formatNumber(params.data.value)}`
                 },
                 color: 'white'
               },
@@ -276,7 +249,7 @@ export default {
                 opacity: 0.3,
                 position: 'end',
                 formatter: (params) => {
-                  return `MAX: ${formatNumber(Number(params.data.value), 3)}`
+                  return `MAX: ${formatNumber(Number(params.data.value))}`
                 },
                 color: 'white'
               },
@@ -290,93 +263,291 @@ export default {
                 color: 'gray',
               },
             },
-            //end third
-            // fourth
-            {
-              yAxis: 0,
-              tooltip: {
-                show: false
-              },
-              lineStyle: {
-                type: "dashed",
-                width: 1,
-                color: null,
-              },
-
-              label: {
-                show: true,
-                opacity: 0.4,
-                distance: 7,
-                color: "white",
-                position: "end",
-                formatter: (params) => {
-                  return `${formatNumber(Number(params.data.value), 3)}`;
-                },
-              }
-            },
           ],
         }
       }]
     })
 
-    onMounted(async () => {
-      const {data} = await axios.get('https://api.binance.com/api/v1/klines?symbol=BTCUSDT&interval=1s')
-      data.forEach(([xAxis, yAxis], index) => { //create 2 minuts graphic line
-        if (index < 120) {
-          dataPoints.value.push(yAxis);
-          labels.value.push(dataConvert(xAxis))
+    // arr with position every dots
+    const dotsArray = ref(chartData.value.series[0].markPoint.data)
+    // arr with position every lines
+    const linesArray = ref(chartData.value.series[0].markLine.data)
+
+    // for select coins
+    const allSelectOptions = ref([
+      {value: selectKeys.BTC_KEY, title: selectValues.BTC_KEY_VALUE},
+      {value: selectKeys.ETH_KEY, title: selectValues.ETH_KEY_VALUE},
+      {value: selectKeys.SOL_KEY, title: selectValues.SOL_KEY_VALUE},
+      {value: selectKeys.BNB_KEY, title: selectValues.BNB_KEY_VALUE},
+    ])
+
+    const selectedValue = ref('btc')
+
+
+    let ws = new WebSocket(`wss://stream.binance.com:9443/ws/${selectedValue.value}usdt@kline_1s`)
+    ws.onmessage = (event) => {
+      data.value = JSON.parse(event.data)
+      grabData(data.value)
+      generateLabels()
+      calculateMinAxis()
+    }
+
+
+    const grabData = (data) => {
+      price.value = formatNumber(data.k.o,)
+      dataPoints.value = [...dataPoints.value, price.value]
+      chartData.value.series[0].data = dataPoints.value
+      chartData.value.series[0].markLine.data[0].yAxis = price.value // add horizontal line with current price
+      chartData.value.series[0].markPoint.data[0].yAxis = price.value// add  point to end line
+      chartData.value.title.subtext = formatNumber(Number(price.value)) // show price sub pair/name
+      chartData.value.title.text = selectedValue.value.toUpperCase()+'/USDT' // show  pair/name
+    }
+
+    const newDot = computed(() => ({//create a new DOt
+      yAxis: clickPosition.value.y,
+      xAxis: clickPosition.value.x,
+      animation: true,
+      // symbol: 'circle',
+      symbolSize: 40,
+      itemStyle: {
+        color: 'yellow'
+      },
+      label: {
+        show: true,
+        formatter: function (params) {
+          return `${winnerBet.value[params.dataIndex - 1]}` // get a bet$ for every dot
+        }
+      }
+    }))
+    const newLine = computed(() => ({ // create line for Dot
+      yAxis: clickPosition.value.y,
+      tooltip: {
+        show: false
+      },
+      lineStyle: {
+        type: "dashed",
+        width: 1,
+        color: null,
+      },
+
+      label: {
+        show: true,
+        opacity: 0.4,
+        distance: 7,
+        color: "white",
+        position: "end",
+        formatter: (params) => {
+          return `${formatNumber(Number(params.data.value))}`;
+        },
+      }
+    }))
+
+    const getPos = () => {
+      clickPosition.value = {
+        x: chartData.value.series[0].markPoint.data[0].xAxis = dateConvert(),
+        y: chartData.value.series[0].markPoint.data[0].yAxis = price.value
+      }
+    }
+
+    const positiveNewDot = () => {
+      if (moneyBet.value >= balance.value || moneyBet.value == 0 || moneyBet.value.length > 5) {
+        alert('error')
+        return false
+      }
+      getPos(); //get yAxis, xAxis
+      winnerBet.value.push(moneyBet.value)
+      dotsArray.value.push(newDot.value) //create dot
+      linesArray.value.push(newLine.value) // create line for dot
+      timer(true)
+    }
+
+    const negativeNewDot = () => {
+      if (moneyBet.value >= balance.value || moneyBet.value == 0 || moneyBet.value.length > 6) {
+        alert('error')
+        return false
+      }
+      getPos();
+      dotsArray.value.push(newDot.value) //create dot
+      linesArray.value.push(newLine.value) // create line for dot
+      winnerBet.value.push(moneyBet.value)
+      timer(false)
+    }
+
+    const timer = (bool) => {
+      if (!click.value) {
+        click.value = true
+        const interval = setInterval(() => {
+          if (time.value >= timeBet.value) {
+            time.value = 0
+            click.value = false
+            calcAllDots(bool)
+            dotsArray.value.splice(1, chartData.value.series[0].markPoint.data.length) //remove dots excluding main dots
+            linesArray.value.splice(1, chartData.value.series[0].markLine.data.length)//remove lines excluding main line
+            return clearInterval(interval)
+          }
+          time.value++
+        }, 1000)
+      }
+    }
+
+    const calcAllDots = (bool) => {
+      const positionFirstDot = chartData.value.series[0].markPoint.data[0].yAxis
+      winnerBetDots.value = bool ? dotsArray.value.slice(1, dotsArray.value.length).map((item, index) => {
+        if (positionFirstDot > item.yAxis) {
+          balance.value += +profitFormulaCurrency(winnerBet.value[index])
+          return item
+        } else {
+          balance.value -= +profitFormulaCurrency(winnerBet.value[index])
+        }
+      }) : dotsArray.value.slice(1, dotsArray.value.length).map((item, index) => {
+        if (positionFirstDot < item.yAxis) {
+          balance.value += +profitFormulaCurrency(winnerBet.value[index])
+          return item
+        } else {
+          balance.value -= +profitFormulaCurrency(winnerBet.value[index])
         }
       })
+      winnerBet.value = []
+    }
+
+    const generateLabels = () => {
+      labels.value = [...labels.value, dateConvert()]
+      chartData.value.xAxis.data = labels.value
+      chartData.value.series[0].markPoint.data[0].xAxis = dateConvert() // add point to end line
+    }
+
+    const calculateMinAxis = () => {
+      chartData.value.yAxis.min = Math.min(...chartData.value.series[0].data)
+      return chartData.value.yAxis.min
+    }
+
+    const plusMoneyBet = () => {
+      if (moneyBet.value.length > 6) {
+        alert('error')
+      } else {
+        moneyBet.value++
+      }
+    }
+
+    const minusMoneyBet = () => {
+      if (moneyBet.value <= 1 || moneyBet.value.length > 6) {
+        alert('bet cant be lower than zero')
+      } else {
+        moneyBet.value--
+      }
+    }
+
+    const plusTimeBet = () => {
+      if (moneyBet.value.length > 6) {
+        alert('error plus')
+      } else {
+        timeBet.value++
+      }
+    }
+
+    const minusTimeBet = () => {
+      if (timeBet.value <= 1) {
+        alert('time cant be lower than zero')
+      } else {
+        timeBet.value--
+      }
+    }
+
+    const clearDataForNewGraphic = ()=>{
+      winnerBetDots.value = []
+      winnerBet.value = []
+      moneyBet.value = 1
+      timeBet.value = 30
+      dataPoints.value = []
+      labels.value = []
+    }
+
+    const fetchStarterGraphic = async (times = 120,interval='1s', symbol= selectedValue.value)=>{
+      const correctedSymbol = symbol.toUpperCase() + 'USDT'
+      loading.value = true
+      const {data} = await axios.get('https://api.binance.com/api/v1/klines', {
+        params: {
+          limit: times, // length of data
+          interval: interval,
+          symbol: correctedSymbol
+        }
+      })
+      loading.value = false // true when axios return response
+      data.forEach(([xAxis, yAxis]) => {
+        dataPoints.value.push(yAxis);
+        labels.value.push(dayjs(xAxis).format('HH:mm:ss'))
+      })
+    }
+
+    onMounted(async () => {
+      await fetchStarterGraphic()
     })
 
-    return {price, chartData, changeSelect, select, getPos, createNewDot}
+    watch(selectedValue, ()=>{
+      ws.onclose = function(){}
+      ws.close()
+      clearDataForNewGraphic()
+      fetchStarterGraphic(120,'1s',selectedValue.value)
+      ws = new WebSocket(`wss://stream.binance.com:9443/ws/${selectedValue.value}usdt@kline_1s`)
+      ws.onmessage = (event) => {
+        data.value = JSON.parse(event.data)
+        grabData(data.value)
+        generateLabels()
+        calculateMinAxis()
+      }
+    })
+
+    return {
+      loading,
+      price,
+      chartData,
+      moneyBet,
+      timeBet,
+      plusMoneyBet,
+      minusMoneyBet,
+      plusTimeBet,
+      minusTimeBet,
+      profitFormulaCurrency,
+      balance,
+      selectedValue,
+      allSelectOptions,
+      getPos,
+      positiveNewDot,
+      time,
+      negativeNewDot
+    }
   }
 }
 </script>
-<style lang="scss">
-html, body {
-  padding: 0;
-  margin: 0;
-  height: 100%;
-  width: 100%;
-  box-sizing: border-box;
-}
-#app {
-  height: inherit;
-}
-.container {
-  overflow-y: auto;
-  height: 100%;
-  background: #151F30;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
+<style lang="scss" scoped>
 
-.container-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.btn {
+.button {
   cursor: pointer;
   padding: 20px 30px;
   border: none;
   border-radius: 2px;
   font-size: 18px;
   color: white;
-  margin-right: 10px;
   margin-bottom: 10px;
-  width: 7.063rem;
+  width: 100%;
+
+  &__hight {
+    background: #35A947;
+  }
+
+  &__lower {
+    background: #E34828;
+  }
 }
 
-.btn__hight {
-  background: #35A947;
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
-.btn__lower {
-  background: #E34828;
+/* Firefox */
+input[type=number] {
+  -moz-appearance: textfield;
 }
-
 </style>
