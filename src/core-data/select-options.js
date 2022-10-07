@@ -3,7 +3,7 @@ export const selectKeys = Object.freeze({
     BTC_KEY: 'btc',
     ETH_KEY: 'eth',
     SOL_KEY: 'sol',
-    BNB_KEY: 'bnb',
+    BNB_KEY: 'bnb'
 })
 
 export const selectValues = Object.freeze({
