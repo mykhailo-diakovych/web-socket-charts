@@ -3,7 +3,7 @@
 </template>
 <script>
 
-import CryptoChart from "@/componetns/CryptoChart";
+import CryptoChart from "@/componetns/CryptoChart.vue";
 export default {
   components: {
     CryptoChart,
