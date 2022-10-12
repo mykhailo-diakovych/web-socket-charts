@@ -81,12 +81,12 @@ export const store = createStore({
             const posFirstDot = positionFirstDot
             state.winnerBetDots = bool ? dotsArray.slice(1, dotsArray.length).map((item, index) => {
                 if (posFirstDot > item.yAxis) {
-                    state.balance += Number(profitFormulaCurrency(state.winnerBet[index]))
+                    state.balance += Number(profitFormulaCurrency(state.winnerBet[index])) + state.moneyBet
                     return item
                 }
             }) : dotsArray.slice(1, dotsArray.length).map((item, index) => {
                 if (posFirstDot < item.yAxis) {
-                    state.balance += Number(profitFormulaCurrency(state.winnerBet[index]))
+                    state.balance += Number(profitFormulaCurrency(state.winnerBet[index])) + state.moneyBet
                     return item
                 }
             })
