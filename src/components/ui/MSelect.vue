@@ -10,18 +10,16 @@
   </select>
 </template>
 
-<script>
-export default {
-  name: "MSelect",
-  props: {
-    modelValue: {
-      type: String,
-      required: true,
-    },
-    options: {
-      type: Array,
-      required: true,
-    },
+<script lang="ts" setup>
+import { defineProps } from "vue";
+defineProps({
+  modelValue: {
+    type: String,
+    required: true,
   },
-};
+  options: {
+    type: Array,
+    required: true,
+  },
+});
 </script>

@@ -7,12 +7,6 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: "MLoader",
-};
-</script>
-
 <style scoped lang="scss">
 .lds-ring {
   display: inline-block;

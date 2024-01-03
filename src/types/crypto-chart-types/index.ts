@@ -1,3 +1,17 @@
+import { CHART_TYPE } from "@/constants/chart";
+
+export interface ChartType {
+  LINE: "line";
+  CANDLESTICK: "candlestick";
+}
+
+export type ChartTypeValue = typeof CHART_TYPE[keyof typeof CHART_TYPE];
+
+export interface ClickPosition {
+  x: number | string | number[];
+  y: number | string | number[];
+}
+
 export interface WebSocketDataEntity {
   e: string;
   E: number;

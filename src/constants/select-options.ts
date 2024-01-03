@@ -1,11 +1,11 @@
-export const selectKeys = Object.freeze({
+export const SELECT_KEYS = Object.freeze({
   BTC_KEY: "btc",
   ETH_KEY: "eth",
   SOL_KEY: "sol",
   BNB_KEY: "bnb",
 });
 
-export const selectValues = Object.freeze({
+export const SELECT_VALUES = Object.freeze({
   BTC_KEY_VALUE: "BTC/USDT",
   ETH_KEY_VALUE: "ETH/USDT",
   SOL_KEY_VALUE: "SOL/USDT",

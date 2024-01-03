@@ -1,11 +1,6 @@
 <template>
   <CryptoChart />
 </template>
-<script>
-import CryptoChart from "@/componetns/CryptoChart.vue";
-export default {
-  components: {
-    CryptoChart,
-  },
-};
+<script setup lang="ts">
+import CryptoChart from "@/components/chart/CryptoChart.vue";
 </script>

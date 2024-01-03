@@ -3,31 +3,29 @@
     class="h-full flex w-full bg-[#151f31] justify-between items-center overflow-y-auto sm:flex-col"
   >
     <template v-if="!loading">
-      <v-chart class="w-full h-full pt-10" autoresize :option="chartData" />
+      <VChart class="w-full h-full pt-10" autoresize :option="chartData" />
     </template>
     <template v-else>
       <div class="w-full flex justify-center h-full items-center">
         <MLoader />
       </div>
     </template>
-    <template
-      class="flex flex-col items-center gap-3 justify-between mr-[20px] sm:mr-[0px]"
-    >
-      <aside-panel
-        @changeTypeLine="changeTypeLine"
-        @changeGraphic="changeGraphic"
-        :positive-new-dot="positiveNewDot"
-        :negative-new-dot="negativeNewDot"
-        :activeClass="activeClass"
-      />
-    </template>
+    <ChartPanel
+      @change-type-line="changeTypeLine"
+      @change-graphic="changeGraphic"
+      @positive-new-dot="positiveNewDot"
+      @negative-new-dot="negativeNewDot"
+      :activeClass="activeClass"
+    />
   </main>
 </template>
 <script setup lang="ts">
 import { onMounted, watch } from "vue";
-import AsidePanel from "@/componetns/AsidePanel";
-import MLoader from "@/componetns/ui/MLoader";
+import ChartPanel from "@/components/chart/chart-panel/ChartPanel.vue";
+import MLoader from "@/components/ui/MLoader.vue";
 import { useCryptoChart } from "@/composables/useCryptoChart";
+import { CHART_TYPE } from "@/constants/chart";
+import { ChartTypeValue } from "@/types/crypto-chart-types";
 
 const {
   fetchStarterGraphic,
@@ -44,15 +42,11 @@ const {
 const changeGraphic = (value: string) => {
   selectedValue.value = value;
 };
-const changeTypeLine = (value: string) => {
-  activeClass.value = value === "line";
+const changeTypeLine = (value: ChartTypeValue) => {
+  activeClass.value = value === CHART_TYPE.LINE;
   typeChart.value = value;
   chartData.value.series[0].type = typeChart.value;
 };
-
-onMounted(async () => {
-  await fetchStarterGraphic();
-});
 
 watch(selectedValue, () => {
   webSocketRelaunch();
@@ -60,5 +54,9 @@ watch(selectedValue, () => {
 
 watch(typeChart, () => {
   webSocketRelaunch();
+});
+
+onMounted(async () => {
+  await fetchStarterGraphic();
 });
 </script>

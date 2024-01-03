@@ -10,7 +10,7 @@
     />
   </div>
   <div class="w-3/12 flex flex-col">
-    <template v-if="bool">
+    <template v-if="isPositive">
       <button class="text-[18px]" @click="$store.commit('plusMoneyBet')">
         +
       </button>
@@ -29,26 +29,18 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: "MInputs",
-  props: {
-    modelValue: {
-      type: Number,
-      required: true,
-    },
-    bool: {
-      type: Boolean,
-      required: true,
-    },
+<script setup lang="ts">
+import { defineProps } from "vue";
+defineProps({
+  modelValue: {
+    type: Number,
+    required: true,
   },
-  setup(props) {
-    const test = () => {
-      console.log(props);
-    };
-    return { test };
+  isPositive: {
+    type: Boolean,
+    required: true,
   },
-};
+});
 </script>
 
 <style scoped>

@@ -1,13 +1,14 @@
-import { graphicColors } from "@/core-data/ui/graphic-colors";
+import { graphicColors } from "@/constants/ui/graphic-colors";
 import * as echarts from "echarts";
 import { formatNumber } from "@/utils/format-float";
-import { ChartData } from "@/types/crypto-chart-types/chartData";
+import { ChartData } from "@/types/crypto-chart-types/chart-data";
 import { LabelFormatterEntity } from "@/types/crypto-chart-types";
+import { SELECT_VALUES } from "@/constants/select-options";
 
-export default (typeChart: any): ChartData => {
+export default (typeChart: string): ChartData => {
   return {
     title: {
-      text: "BTC/USDT",
+      text: SELECT_VALUES.BTC_KEY_VALUE,
       subtext: "",
       left: "center",
       padding: [0, 0, 0, 90],
