@@ -32,7 +32,5 @@ export default {
       type: Function,
     },
   },
-
-  setup() {},
 };
 </script>

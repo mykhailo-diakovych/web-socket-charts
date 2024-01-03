@@ -514,7 +514,9 @@ export default {
     };
 
     const webSocketRelaunch = () => {
-      ws.onclose = function () {};
+      ws.onclose = function () {
+        console.log("WebSocket is closed now.");
+      };
       ws.close();
       clearDataForNewGraphic();
       fetchStarterGraphic(120, "1s", selectedValue.value);
@@ -558,4 +560,3 @@ export default {
   },
 };
 </script>
-<style lang="scss" scoped></style>

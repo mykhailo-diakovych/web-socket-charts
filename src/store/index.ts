@@ -1,7 +1,19 @@
 import { createStore } from "vuex";
 import { profitFormulaCurrency } from "@/utils/profit-formula";
 
-export const store = createStore({
+interface RootState {
+  moneyBet: any;
+  balance: number;
+  timeBet: number;
+  time: number;
+  percentForProfit: number;
+  winnerBetDots: any[]; // Update with the actual type
+  winnerBet: any[]; // Update with the actual type
+  disabledTimeButton: boolean;
+  selectedValue: string;
+}
+
+export const store = createStore<RootState>({
   state() {
     return {
       moneyBet: 1,
@@ -80,22 +92,26 @@ export const store = createStore({
     calcAllDots(state, { bool, positionFirstDot, dotsArray }) {
       const posFirstDot = positionFirstDot;
       state.winnerBetDots = bool
-        ? dotsArray.slice(1, dotsArray.length).map((item, index) => {
-            if (posFirstDot > item.yAxis) {
-              state.balance +=
-                Number(profitFormulaCurrency(state.winnerBet[index])) +
-                state.moneyBet;
-              return item;
-            }
-          })
-        : dotsArray.slice(1, dotsArray.length).map((item, index) => {
-            if (posFirstDot < item.yAxis) {
-              state.balance +=
-                Number(profitFormulaCurrency(state.winnerBet[index])) +
-                state.moneyBet;
-              return item;
-            }
-          });
+        ? dotsArray
+            .slice(1, dotsArray.length)
+            .map((item: any, index: number) => {
+              if (posFirstDot > item.yAxis) {
+                state.balance +=
+                  Number(profitFormulaCurrency(state.winnerBet[index])) +
+                  state.moneyBet;
+                return item;
+              }
+            })
+        : dotsArray
+            .slice(1, dotsArray.length)
+            .map((item: any, index: number) => {
+              if (posFirstDot < item.yAxis) {
+                state.balance +=
+                  Number(profitFormulaCurrency(state.winnerBet[index])) +
+                  state.moneyBet;
+                return item;
+              }
+            });
       state.winnerBet = [];
     },
   },
