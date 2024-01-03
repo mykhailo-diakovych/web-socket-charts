@@ -6,15 +6,25 @@ import { formatNumber } from "@/utils/format-float";
 import { dateConvert } from "@/utils/parse-date";
 import { store } from "@/store";
 import getChartData from "@/utils/chartData";
+import {
+  LabelFormatterEntity,
+  WebSocketDataK,
+} from "@/types/crypto-chart-types";
+import { DotsArray } from "@/types/crypto-chart-types/dots";
+
+interface ClickPosition {
+  x: number | string | number[];
+  y: number | string | number[];
+}
 
 export const useCryptoChart = () => {
   const loading = ref(false);
-  const price = ref(0); // price cryprocurrency for labels
+  const price = ref<number[] | number>(0); // price cryprocurrency for labels
   const labels = ref([]); // all xAxis
   const dataPoints = ref([]); // all yAxis
   const data = ref([]); // data which return webscoket
   const click = ref(false); // need for buttons
-  const clickPosition = ref({
+  const clickPosition = ref<ClickPosition>({
     // need for create dots
     x: 0,
     y: 0,
@@ -36,7 +46,7 @@ export const useCryptoChart = () => {
   const chartData = ref(getChartData(typeChart.value));
 
   // arr with position every dots
-  const dotsArray = ref(chartData.value.series[0].markPoint.data);
+  const dotsArray = ref<DotsArray>(chartData.value.series[0].markPoint.data);
   // arr with position every lines
   const linesArray = ref(chartData.value.series[0].markLine.data);
 
@@ -50,14 +60,14 @@ export const useCryptoChart = () => {
   );
   ws.onmessage = (event) => {
     data.value = JSON.parse(event.data);
-    grabData(data.value);
+    // @ts-ignore
+    grabData(data.value.k);
     generateLabels();
     calculateMinAxis();
     gridChart();
   };
 
-  const grabData = ({ k }: any) => {
-    console.log(k, "k");
+  const grabData = (k: WebSocketDataK) => {
     if (typeChart.value === "line") {
       price.value = formatNumber(k.o);
       // @ts-ignore
@@ -67,7 +77,6 @@ export const useCryptoChart = () => {
       chartData.value.series[0].markPoint.data[0].yAxis = price.value; // add  point to end line
     }
     if (typeChart.value === "candlestick") {
-      // @ts-ignore
       price.value = [k.o, k.c, k.l, k.h];
       // @ts-ignore
       dataPoints.value.push(price.value);
@@ -82,14 +91,13 @@ export const useCryptoChart = () => {
     yAxis: clickPosition.value.y,
     xAxis: clickPosition.value.x,
     animation: true,
-    // symbol: 'circle',
     symbolSize: 40,
     itemStyle: {
       color: colorMarker.value,
     },
     label: {
       show: true,
-      formatter: function (params: any) {
+      formatter: function (params: LabelFormatterEntity) {
         return `${store.state.winnerBet[params.dataIndex - 1]}`; // get a bet$ for every dot
       },
     },
@@ -104,7 +112,7 @@ export const useCryptoChart = () => {
     },
     label: {
       show: true,
-      formatter: function (params: any) {
+      formatter: function (params: LabelFormatterEntity) {
         return `${store.state.winnerBet[params.dataIndex - 1]}`; // get a bet$ for every dot
       },
     },
@@ -128,7 +136,7 @@ export const useCryptoChart = () => {
       distance: 7,
       color: "white",
       position: "start",
-      formatter: (params: any) => {
+      formatter: (params: LabelFormatterEntity) => {
         return `${formatNumber(Number(params.data.value))}`;
       },
     },
@@ -137,14 +145,12 @@ export const useCryptoChart = () => {
   const getPos = () => {
     if (typeChart.value === "line") {
       clickPosition.value = {
-        // @ts-ignore
         x: (chartData.value.series[0].markPoint.data[0].xAxis = dateConvert()),
         y: (chartData.value.series[0].markPoint.data[0].yAxis = price.value),
       };
     }
     if (typeChart.value === "candlestick") {
       clickPosition.value = {
-        // @ts-ignore
         x: (chartData.value.series[0].markPoint.data[0].xAxis = dateConvert()),
         // @ts-ignore
         y: (chartData.value.series[0].markPoint.data[0].yAxis = price.value[0]),
@@ -165,7 +171,6 @@ export const useCryptoChart = () => {
     colorMarker.value = "green";
     store.commit("addWinnerBet", store.state.moneyBet);
     if (typeChart.value === "line") {
-      // @ts-ignore
       dotsArray.value.push(newDot.value); //create dot
       // @ts-ignore
       linesArray.value.push(newLine.value); // create line for dot
@@ -191,7 +196,6 @@ export const useCryptoChart = () => {
     getPos();
     colorMarker.value = "red";
     if (typeChart.value === "line") {
-      // @ts-ignore
       dotsArray.value.push(newDot.value); //create dot
       // @ts-ignore
       linesArray.value.push(newLine.value); // create line for dot
@@ -243,12 +247,10 @@ export const useCryptoChart = () => {
     // @ts-ignore
     labels.value = [...labels.value, dateConvert()];
     chartData.value.xAxis.data = labels.value;
-    // @ts-ignore
     chartData.value.series[0].markPoint.data[0].xAxis = dateConvert(); // add point to end line
   };
 
   const calculateMinAxis = () => {
-    // @ts-ignore
     chartData.value.yAxis.min = Math.min(...chartData.value.series[0].data);
     return chartData.value.yAxis.min;
   };
@@ -317,7 +319,8 @@ export const useCryptoChart = () => {
     );
     ws.onmessage = (event) => {
       data.value = JSON.parse(event.data);
-      grabData(data.value);
+      // @ts-ignore
+      grabData(data.value.k);
       generateLabels();
       calculateMinAxis();
     };

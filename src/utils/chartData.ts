@@ -1,8 +1,10 @@
 import { graphicColors } from "@/core-data/ui/graphic-colors";
 import * as echarts from "echarts";
 import { formatNumber } from "@/utils/format-float";
+import { ChartData } from "@/types/crypto-chart-types/chartData";
+import { LabelFormatterEntity } from "@/types/crypto-chart-types";
 
-export default (typeChart: any) => {
+export default (typeChart: any): ChartData => {
   return {
     title: {
       text: "BTC/USDT",
@@ -11,7 +13,6 @@ export default (typeChart: any) => {
       padding: [0, 0, 0, 90],
       subtextStyle: {
         color: "#BABAD2",
-
         fontSize: 16,
       },
       textStyle: {
@@ -126,7 +127,7 @@ export default (typeChart: any) => {
                 backgroundColor: "#B9A1FF",
                 position: "end",
                 padding: [7, 12, 9, 7],
-                formatter: (params: any) => {
+                formatter: (params: LabelFormatterEntity) => {
                   if (!params.data.value) return "";
                   return `${formatNumber(Number(params.data.value))}`;
                 },
@@ -149,7 +150,7 @@ export default (typeChart: any) => {
               label: {
                 opacity: 0.3,
                 position: "end",
-                formatter: (params: any) => {
+                formatter: (params: LabelFormatterEntity) => {
                   return `AVG: ${formatNumber(params.data.value)}`;
                 },
                 color: "white",
@@ -165,7 +166,7 @@ export default (typeChart: any) => {
               label: {
                 opacity: 0.3,
                 position: "end",
-                formatter: (params: any) => {
+                formatter: (params: LabelFormatterEntity) => {
                   return `MAX: ${formatNumber(Number(params.data.value))}`;
                 },
                 color: "white",
