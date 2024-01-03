@@ -1,11 +1,16 @@
 <template>
-  <div class="lds-ring"><div></div><div></div><div></div><div></div></div>
+  <div class="lds-ring">
+    <div></div>
+    <div></div>
+    <div></div>
+    <div></div>
+  </div>
 </template>
 
 <script>
 export default {
-  name: "MLoader"
-}
+  name: "MLoader",
+};
 </script>
 
 <style scoped lang="scss">
@@ -35,7 +40,7 @@ export default {
   & div:nth-child(3) {
     animation-delay: -0.15s;
   }
-  @keyframes lds-ring{
+  @keyframes lds-ring {
     0% {
       transform: rotate(0deg);
     }
@@ -44,6 +49,4 @@ export default {
     }
   }
 }
-
-
 </style>
