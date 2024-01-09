@@ -1,15 +1,14 @@
 import axios from "axios";
 import dayjs from "dayjs";
-import { computed, ref } from "vue";
+import { ref } from "vue";
 import { API_LINKS } from "@/constants/api-links";
 import { formatNumber } from "@/utils/format-float";
 import { dateConvert } from "@/utils/parse-date";
 import { useChartStore } from "@/store";
-import getChartData from "@/utils/chart-data";
+import getChartData from "@/helpers/chart-data";
 import {
   ChartTypeValue,
   ClickPosition,
-  LabelFormatterEntity,
   WebSocketDataK,
 } from "@/types/crypto-chart-types";
 import { DotsArray } from "@/types/crypto-chart-types/dots";
@@ -19,8 +18,14 @@ import {
   DEFAULT_TIME_BET,
 } from "@/constants/chart";
 import { SELECT_KEYS } from "@/constants/select-options";
-import { getChartWebSocketLink } from "@/utils/get-web-socket";
+import { getChartWebSocketLink } from "@/helpers/get-chart-web-socket";
+import {
+  generateNewDotOptions,
+  generateNewCandleDotOptions,
+  generateNewLineOptions,
+} from "@/helpers/generate-graph-elements";
 import { storeToRefs } from "pinia";
+import { calculateMinAxis } from "@/helpers/calculation-chart-axis";
 
 export const useCryptoChart = () => {
   const {
@@ -80,7 +85,7 @@ export const useCryptoChart = () => {
     // @ts-ignore
     grabData(webSocketData.value.k);
     generateLabels();
-    calculateMinAxis();
+    calculateMinAxis(chartData);
     gridChart();
   };
 
@@ -106,57 +111,6 @@ export const useCryptoChart = () => {
       selectedCryptoPair.value.toUpperCase() + "/USDT"; // show  pair/name
   };
 
-  const getSameDotOptions = () => {
-    return {
-      animation: true,
-      symbolSize: 40,
-      itemStyle: {
-        color: colorMarker.value,
-      },
-      label: {
-        show: true,
-        formatter: function (params: LabelFormatterEntity) {
-          return `${winnerBet.value[params.dataIndex - 1]}`; // get a bet$ for every dot
-        },
-      },
-    };
-  };
-  const newDot = computed(() => ({
-    //create a new Dot
-    yAxis: clickPosition.value.y,
-    xAxis: clickPosition.value.x,
-    ...getSameDotOptions(),
-  }));
-  const newDotForCandle = computed(() => ({
-    //create a new Dot
-    coord: [clickPosition.value.x, clickPosition.value.y],
-    ...getSameDotOptions(),
-  }));
-
-  const newLine = computed(() => ({
-    // create line for Dot
-    yAxis: clickPosition.value.y,
-    tooltip: {
-      show: false,
-    },
-    lineStyle: {
-      type: "dashed",
-      width: 1,
-      color: null,
-    },
-
-    label: {
-      show: true,
-      opacity: 0.4,
-      distance: 7,
-      color: "white",
-      position: "start",
-      formatter: (params: LabelFormatterEntity) => {
-        return `${formatNumber(Number(params.data.value))}`;
-      },
-    },
-  }));
-
   const getPos = () => {
     clickPosition.value.x = chartData.value.series[0].markPoint.data[0].xAxis =
       dateConvert();
@@ -179,7 +133,7 @@ export const useCryptoChart = () => {
       moneyBet.value == 0 ||
       moneyBet.value.length > 5
     ) {
-      alert("error");
+      alert("Insufficient Funds: Please consider replenishing your balance.");
       return false;
     }
     getPos(); //get yAxis, xAxis
@@ -187,15 +141,19 @@ export const useCryptoChart = () => {
       ? CHART_MARKER_COLOR.POSITIVE
       : CHART_MARKER_COLOR.NEGATIVE;
     if (typeChart.value === CHART_TYPE.LINE) {
-      dotsArray.value.push(newDot.value); //create dot
+      dotsArray.value.push(
+        generateNewDotOptions(clickPosition, winnerBet, colorMarker)
+      ); //create dot
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
-      linesArray.value.push(newLine.value); // create line for dot
+      linesArray.value.push(generateNewLineOptions(clickPosition)); // create line for dot
     }
     if (typeChart.value === CHART_TYPE.CANDLESTICK) {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      dotsArray.value.push(newDotForCandle.value); //create dot
+      dotsArray.value.push(
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        generateNewCandleDotOptions(clickPosition, winnerBet, colorMarker)
+      ); //create dot
       isPositive && (dotsArray.value[0].symbol = "none");
     }
 
@@ -252,13 +210,6 @@ export const useCryptoChart = () => {
     labels.value = [...labels.value, dateConvert()];
     chartData.value.xAxis.data = labels.value;
     chartData.value.series[0].markPoint.data[0].xAxis = dateConvert(); // add point to end line
-  };
-
-  const calculateMinAxis = () => {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    chartData.value.yAxis.min = Math.min(...chartData.value.series[0].data);
-    return chartData.value.yAxis.min;
   };
 
   const clearDataForNewGraphic = () => {
@@ -325,7 +276,7 @@ export const useCryptoChart = () => {
       // @ts-ignore
       grabData(webSocketData.value?.k);
       generateLabels();
-      calculateMinAxis();
+      calculateMinAxis(chartData);
     };
   };
 

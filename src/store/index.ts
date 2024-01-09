@@ -16,55 +16,55 @@ export const useChartStore = defineStore("chart-store", () => {
   const winnerBet = ref<any>([]);
   const disabledTimeButton = ref(false);
 
-  function calculateCurrentBalance(newValue: number) {
+  const calculateCurrentBalance = (newValue: number) => {
     balance.value -= newValue;
-  }
+  };
 
-  function addWinnerBet(payload: number) {
+  const addWinnerBet = (payload: number) => {
     winnerBet.value = [...winnerBet.value, payload];
-  }
+  };
 
-  function onChangeMoneyBet(newBet: number) {
+  const onChangeMoneyBet = (newBet: number) => {
     moneyBet.value = newBet;
-  }
+  };
 
-  function onChangeTimeBet(newTimeBet: number) {
+  const onChangeTimeBet = (newTimeBet: number) => {
     timeBet.value = newTimeBet;
-  }
+  };
 
-  function plusMoneyBet() {
+  const plusMoneyBet = () => {
     if (moneyBet.value?.length > 6) {
       alert("error");
     } else {
       moneyBet.value++;
     }
-  }
+  };
 
-  function minusMoneyBet() {
+  const minusMoneyBet = () => {
     if (moneyBet.value <= 1 || moneyBet.value?.length > 6) {
       alert("bet cant be lower than zero");
     } else {
       moneyBet.value--;
     }
-  }
+  };
 
-  function plusTimeBet() {
+  const plusTimeBet = () => {
     if (moneyBet.value.length > 6) {
       alert("error plus");
     } else if (!disabledTimeButton.value) {
       timeBet.value++;
     }
-  }
+  };
 
-  function minusTimeBet() {
+  const minusTimeBet = () => {
     if (timeBet.value <= 1) {
       alert("time cant be lower than zero");
     } else if (!disabledTimeButton.value) {
       timeBet.value--;
     }
-  }
+  };
 
-  function calculationDotsArray({
+  const calculationDotsArray = ({
     bool,
     positionFirstDot,
     dotsArray,
@@ -72,7 +72,7 @@ export const useChartStore = defineStore("chart-store", () => {
     bool: boolean;
     positionFirstDot: number;
     dotsArray: any[];
-  }) {
+  }) => {
     const posFirstDot = positionFirstDot;
     winnerBetDots.value = bool
       ? dotsArray.slice(1, dotsArray.length).map((item, index) => {
@@ -92,7 +92,7 @@ export const useChartStore = defineStore("chart-store", () => {
           }
         });
     winnerBet.value = [];
-  }
+  };
 
   return {
     moneyBet,
