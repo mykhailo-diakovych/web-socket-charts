@@ -14,7 +14,7 @@
       class="flex flex-col items-center mt-2 gap-2 justify-between text-green-500 sm:hidden"
     >
       <p class="text-white text-[14px]">Profit ?</p>
-      <p class="text-5xl">+86%</p>
+      <p class="text-5xl">+{{ DEFAULT_PROFIT_PERCENT }}%</p>
       <p class="text-[18px] font-medium">
         +{{ formatNumber(profitFormulaCurrency(moneyBet), 0) }}
         dollars
@@ -42,6 +42,7 @@ import { formatNumber } from "@/utils/format-float";
 import MInputs from "@/components/ui/MInputs.vue";
 import MButton from "@/components/ui/MButton.vue";
 import { computed, defineEmits } from "vue";
+import { DEFAULT_PROFIT_PERCENT } from "@/constants/chart";
 import { useChartStore } from "@/store";
 import { storeToRefs } from "pinia";
 

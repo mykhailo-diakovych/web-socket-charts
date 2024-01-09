@@ -13,7 +13,11 @@ import {
   WebSocketDataK,
 } from "@/types/crypto-chart-types";
 import { DotsArray } from "@/types/crypto-chart-types/dots";
-import { CHART_MARKER_COLOR, CHART_TYPE } from "@/constants/chart";
+import {
+  CHART_MARKER_COLOR,
+  CHART_TYPE,
+  DEFAULT_TIME_BET,
+} from "@/constants/chart";
 import { SELECT_KEYS } from "@/constants/select-options";
 import { getChartWebSocketLink } from "@/utils/get-web-socket";
 import { storeToRefs } from "pinia";
@@ -261,7 +265,7 @@ export const useCryptoChart = () => {
     winnerBetDots.value = [];
     winnerBet.value = [];
     moneyBet.value = 1;
-    timeBet.value = 4;
+    timeBet.value = DEFAULT_TIME_BET;
     dataPoints.value = [];
     labels.value = [];
     if (typeChart.value === CHART_TYPE.CANDLESTICK) {

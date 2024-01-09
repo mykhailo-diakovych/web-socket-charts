@@ -1,11 +1,16 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
 import { profitFormulaCurrency } from "@/utils/profit-formula";
+import {
+  DEFAULT_BET,
+  DEFAULT_TIME_BET,
+  DEFAULT_USER_BALANCE,
+} from "@/constants/chart";
 
 export const useChartStore = defineStore("chart-store", () => {
-  const moneyBet = ref<any>(1);
-  const balance = ref(10000);
-  const timeBet = ref(4);
+  const moneyBet = ref<any>(DEFAULT_BET);
+  const balance = ref(DEFAULT_USER_BALANCE);
+  const timeBet = ref(DEFAULT_TIME_BET);
   const time = ref(0);
   const winnerBetDots = ref<any>([]);
   const winnerBet = ref<any>([]);
