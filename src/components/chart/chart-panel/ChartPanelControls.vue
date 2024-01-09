@@ -4,10 +4,20 @@
   >
     <div class="flex flex-col gap-3">
       <div class="flex border-2 border-[#3e3f45] text-[#8f8281] rounded-md p-2">
-        <MInputs v-model="betValue" is-positive>Sum</MInputs>
+        <ChartPanelInput
+          v-model="betValue"
+          :input-label="'Sum'"
+          @on-plus-action="plusMoneyBet"
+          @on-minus-action="minusMoneyBet"
+        />
       </div>
       <div class="flex border-2 border-[#3e3f45] text-[#8f8281] rounded-md p-2">
-        <MInputs v-model="time" :is-positive="false">Time</MInputs>
+        <ChartPanelInput
+          v-model="time"
+          :input-label="'Time'"
+          @on-plus-action="plusTimeBet"
+          @on-minus-action="minusTimeBet"
+        />
       </div>
     </div>
     <div
@@ -23,12 +33,15 @@
     <div
       class="flex flex-col items-center w-full sm:h-[160px] sm:justify-between sm:gap-[14px]"
     >
-      <MButton @positive-new-dot="$emit('positive-new-dot')" is-positive>
+      <MButton
+        class="bg-[#35A947] px-[30px] py-[20px] border-none rounded text-[18px] text-white mb-[10px] w-full"
+        @on-click-action="$emit('positive-new-dot')"
+      >
         Higher
       </MButton>
       <MButton
-        @negative-new-dot="$emit('negative-new-dot')"
-        :is-positive="false"
+        class="bg-[#E34828] px-[30px] py-[20px] border-none rounded text-[18px] text-white mb-[10px] w-full"
+        @on-click-action="$emit('negative-new-dot')"
       >
         Lower
       </MButton>
@@ -39,17 +52,25 @@
 <script lang="ts" setup>
 import { profitFormulaCurrency } from "@/utils/profit-formula";
 import { formatNumber } from "@/utils/format-float";
-import MInputs from "@/components/ui/MInputs.vue";
 import MButton from "@/components/ui/MButton.vue";
 import { computed, defineEmits } from "vue";
 import { DEFAULT_PROFIT_PERCENT } from "@/constants/chart";
 import { useChartStore } from "@/store";
 import { storeToRefs } from "pinia";
+import ChartPanelInput from "@/components/chart/chart-panel/ChartPanelInput.vue";
 
 defineEmits(["positive-new-dot", "negative-new-dot"]);
 
+useChartStore();
 const { moneyBet, timeBet } = storeToRefs(useChartStore());
-const { onChangeMoneyBet, onChangeTimeBet } = useChartStore();
+const {
+  onChangeMoneyBet,
+  onChangeTimeBet,
+  plusMoneyBet,
+  minusMoneyBet,
+  plusTimeBet,
+  minusTimeBet,
+} = useChartStore();
 
 const betValue = computed({
   get() {

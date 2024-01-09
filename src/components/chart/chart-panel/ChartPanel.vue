@@ -14,7 +14,7 @@
         @change-type-line="$emit('change-type-line', $event)"
       />
     </div>
-    <MSelect :options="allSelectOptions" v-model="selectedCryptoPair" />
+    <MSelect :options="CRYPTO_PAIR_OPTIONS" v-model="selectedCryptoPair" />
     <ChartPanelBalance />
     <ChartPanelControls
       @positive-new-dot="$emit('positive-new-dot')"
@@ -28,7 +28,7 @@ import MSelect from "@/components/ui/MSelect.vue";
 import LineIcon from "@/components/icons/LineIcon.vue";
 import CandlestickIcon from "@/components/icons/CandlestickIcon.vue";
 import { ref, watch, defineEmits, defineProps } from "vue";
-import { SELECT_KEYS, SELECT_VALUES } from "@/constants/select-options";
+import { SELECT_KEYS, CRYPTO_PAIR_OPTIONS } from "@/constants/select-options";
 import ChartPanelBalance from "@/components/chart/chart-panel/ChartPanelBalance.vue";
 import ChartPanelControls from "@/components/chart/chart-panel/ChartPanelControls.vue";
 
@@ -44,13 +44,6 @@ defineProps({
     type: Boolean,
   },
 });
-
-const allSelectOptions = [
-  { value: SELECT_KEYS.BTC_KEY, title: SELECT_VALUES.BTC_KEY_VALUE },
-  { value: SELECT_KEYS.ETH_KEY, title: SELECT_VALUES.ETH_KEY_VALUE },
-  { value: SELECT_KEYS.SOL_KEY, title: SELECT_VALUES.SOL_KEY_VALUE },
-  { value: SELECT_KEYS.BNB_KEY, title: SELECT_VALUES.BNB_KEY_VALUE },
-];
 
 const selectedCryptoPair = ref(SELECT_KEYS.BTC_KEY);
 
