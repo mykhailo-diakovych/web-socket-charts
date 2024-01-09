@@ -1,10 +1,9 @@
 <template>
   <MInputs
     :model-value="modelValue"
+    :input-label="inputLabel"
     @input="$emit('update:modelValue', $event.target.value)"
-  >
-    {{ inputLabel }}
-  </MInputs>
+  />
   <div class="w-3/12 flex flex-col">
     <MButton class="text-[18px]" @on-click-action="$emit('on-plus-action')"
       >+</MButton

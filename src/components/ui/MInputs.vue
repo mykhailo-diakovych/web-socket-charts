@@ -1,6 +1,6 @@
 <template>
   <div class="w-9/12 flex flex-col">
-    <label><slot></slot></label>
+    <label>{{ inputLabel }}</label>
     <input
       :maxlength="5"
       :value="modelValue"
@@ -17,6 +17,10 @@ import { defineProps } from "vue";
 defineProps({
   modelValue: {
     type: Number,
+    required: true,
+  },
+  inputLabel: {
+    type: String,
     required: true,
   },
 });
