@@ -1,13 +1,10 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck
-
 import axios from "axios";
 import dayjs from "dayjs";
 import { computed, ref } from "vue";
 import { API_LINKS } from "@/constants/api-links";
 import { formatNumber } from "@/utils/format-float";
 import { dateConvert } from "@/utils/parse-date";
-import { store } from "@/store";
+import { useChartStore } from "@/store";
 import getChartData from "@/utils/chart-data";
 import {
   ChartTypeValue,
@@ -19,12 +16,25 @@ import { DotsArray } from "@/types/crypto-chart-types/dots";
 import { CHART_MARKER_COLOR, CHART_TYPE } from "@/constants/chart";
 import { SELECT_KEYS } from "@/constants/select-options";
 import { getChartWebSocketLink } from "@/utils/get-web-socket";
+import { storeToRefs } from "pinia";
 
 export const useCryptoChart = () => {
+  const {
+    moneyBet,
+    balance,
+    time,
+    timeBet,
+    disabledTimeButton,
+    winnerBetDots,
+    winnerBet,
+  } = storeToRefs(useChartStore());
+
+  const { calculateCurrentBalance, addWinnerBet, calculationDotsArray } =
+    useChartStore();
   const loading = ref(false);
   const cryptoPrice = ref<number[] | number>(0); // price cryptocurrency for labels
-  const labels = ref([]); // all xAxis values
-  const dataPoints = ref([]); // all yAxis values
+  const labels = ref<string[]>([]); // all xAxis values
+  const dataPoints = ref<string[][]>([]); // all yAxis values
   const webSocketData = ref([]); // data which return webscoket
   const isClick = ref(false);
   const clickPosition = ref<ClickPosition>({
@@ -62,6 +72,8 @@ export const useCryptoChart = () => {
 
   ws.onmessage = (event) => {
     webSocketData.value = JSON.parse(event.data);
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     grabData(webSocketData.value.k);
     generateLabels();
     calculateMinAxis();
@@ -71,6 +83,8 @@ export const useCryptoChart = () => {
   const grabData = (k: WebSocketDataK) => {
     if (typeChart.value === CHART_TYPE.LINE) {
       cryptoPrice.value = formatNumber(k.o);
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       dataPoints.value = [...dataPoints.value, cryptoPrice.value];
       chartData.value.series[0].data = dataPoints.value;
       chartData.value.series[0].markLine.data[0].yAxis = cryptoPrice.value; // add horizontal line with current price
@@ -78,6 +92,8 @@ export const useCryptoChart = () => {
     }
     if (typeChart.value === CHART_TYPE.CANDLESTICK) {
       cryptoPrice.value = [k.o, k.c, k.l, k.h];
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       dataPoints.value.push(cryptoPrice.value);
       chartData.value.series[0].data = dataPoints.value;
     }
@@ -96,7 +112,7 @@ export const useCryptoChart = () => {
       label: {
         show: true,
         formatter: function (params: LabelFormatterEntity) {
-          return `${store.state.winnerBet[params.dataIndex - 1]}`; // get a bet$ for every dot
+          return `${winnerBet.value[params.dataIndex - 1]}`; // get a bet$ for every dot
         },
       },
     };
@@ -147,15 +163,17 @@ export const useCryptoChart = () => {
     if (typeChart.value === CHART_TYPE.CANDLESTICK) {
       clickPosition.value.y =
         chartData.value.series[0].markPoint.data[0].yAxis =
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
           cryptoPrice.value[0];
     }
   };
 
   const createNewDot = (isPositive: boolean) => {
     if (
-      store.state.moneyBet >= store.state.balance ||
-      store.state.moneyBet == 0 ||
-      store.state.moneyBet.length > 5
+      moneyBet.value >= balance.value ||
+      moneyBet.value == 0 ||
+      moneyBet.value.length > 5
     ) {
       alert("error");
       return false;
@@ -166,15 +184,19 @@ export const useCryptoChart = () => {
       : CHART_MARKER_COLOR.NEGATIVE;
     if (typeChart.value === CHART_TYPE.LINE) {
       dotsArray.value.push(newDot.value); //create dot
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       linesArray.value.push(newLine.value); // create line for dot
     }
     if (typeChart.value === CHART_TYPE.CANDLESTICK) {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       dotsArray.value.push(newDotForCandle.value); //create dot
       isPositive && (dotsArray.value[0].symbol = "none");
     }
 
-    store.commit("addWinnerBet", store.state.moneyBet);
-    store.commit("calculateCurrentBalance", store.state.moneyBet);
+    addWinnerBet(moneyBet.value);
+    calculateCurrentBalance(moneyBet.value);
     launchBetTimer(isPositive);
   };
 
@@ -190,8 +212,8 @@ export const useCryptoChart = () => {
     if (!isClick.value) {
       isClick.value = true;
       const interval = setInterval(() => {
-        if (store.state.time >= store.state.timeBet) {
-          store.commit("clearTime");
+        if (time.value >= timeBet.value) {
+          time.value = 0;
           isClick.value = false;
           calcAllDots(bool);
           dotsArray.value.splice(
@@ -202,18 +224,20 @@ export const useCryptoChart = () => {
             3,
             chartData.value.series[0].markLine.data.length
           ); //remove lines excluding main line
-          store.commit("toggleDisabledTimeButton", false);
+          disabledTimeButton.value = false;
           return clearInterval(interval);
         }
-        store.commit("incomeTime");
-        store.commit("toggleDisabledTimeButton", true);
+        time.value++;
+        disabledTimeButton.value = true;
       }, 1000);
     }
   };
 
   const calcAllDots = (bool: boolean) => {
-    const positionFirstDot = chartData.value.series[0].markPoint.data[0].yAxis;
-    store.commit("calcAllDots", {
+    const positionFirstDot = Number(
+      chartData.value.series[0].markPoint.data[0].yAxis
+    );
+    calculationDotsArray({
       bool,
       positionFirstDot,
       dotsArray: dotsArray.value,
@@ -227,15 +251,17 @@ export const useCryptoChart = () => {
   };
 
   const calculateMinAxis = () => {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     chartData.value.yAxis.min = Math.min(...chartData.value.series[0].data);
     return chartData.value.yAxis.min;
   };
 
   const clearDataForNewGraphic = () => {
-    store.commit("clearWinnerBetDots");
-    store.commit("clearWinnerBet");
-    store.commit("clearMoneyBet");
-    store.commit("clearTimeBet");
+    winnerBetDots.value = [];
+    winnerBet.value = [];
+    moneyBet.value = 1;
+    timeBet.value = 4;
     dataPoints.value = [];
     labels.value = [];
     if (typeChart.value === CHART_TYPE.CANDLESTICK) {
@@ -272,7 +298,7 @@ export const useCryptoChart = () => {
       });
     }
     if (typeChart.value === CHART_TYPE.CANDLESTICK) {
-      data.forEach(([openTime, open, high, low, close]: any) => {
+      data.forEach(([openTime, open, high, low, close]: string) => {
         dataPoints.value.push([open, close, low, high]);
         labels.value.push(dayjs(openTime).format("HH:mm:ss"));
       });
@@ -291,7 +317,9 @@ export const useCryptoChart = () => {
     );
     ws.onmessage = (event) => {
       webSocketData.value = JSON.parse(event.data);
-      grabData(webSocketData.value.k);
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      grabData(webSocketData.value?.k);
       generateLabels();
       calculateMinAxis();
     };

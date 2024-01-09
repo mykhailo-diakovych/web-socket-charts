@@ -14,9 +14,9 @@
       class="flex flex-col items-center mt-2 gap-2 justify-between text-green-500 sm:hidden"
     >
       <p class="text-white text-[14px]">Profit ?</p>
-      <p class="text-5xl">+{{ $store.state.percentForProfit }}%</p>
+      <p class="text-5xl">+86%</p>
       <p class="text-[18px] font-medium">
-        +{{ formatNumber(profitFormulaCurrency($store.state.moneyBet), 0) }}
+        +{{ formatNumber(profitFormulaCurrency(moneyBet), 0) }}
         dollars
       </p>
     </div>
@@ -42,25 +42,29 @@ import { formatNumber } from "@/utils/format-float";
 import MInputs from "@/components/ui/MInputs.vue";
 import MButton from "@/components/ui/MButton.vue";
 import { computed, defineEmits } from "vue";
-import { store } from "@/store";
+import { useChartStore } from "@/store";
+import { storeToRefs } from "pinia";
 
 defineEmits(["positive-new-dot", "negative-new-dot"]);
 
+const { moneyBet, timeBet } = storeToRefs(useChartStore());
+const { onChangeMoneyBet, onChangeTimeBet } = useChartStore();
+
 const betValue = computed({
   get() {
-    return store.state.moneyBet;
+    return moneyBet.value;
   },
   set(value) {
-    store.commit("onChangeMoneyBet", value);
+    onChangeMoneyBet(Number(value));
   },
 });
 
 const time = computed({
   get() {
-    return store.state.timeBet;
+    return timeBet.value;
   },
   set(value) {
-    store.commit("onChanheTimeBet", value);
+    onChangeTimeBet(Number(value));
   },
 });
 </script>

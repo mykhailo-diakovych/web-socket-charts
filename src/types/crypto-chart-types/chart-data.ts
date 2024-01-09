@@ -102,7 +102,7 @@ export interface Series {
   type: string;
   showSymbol: boolean;
   symbol: string;
-  data: number[];
+  data: number[] | string[] | string[][] | number[][];
   markPoint: MarkPoint;
   lineStyle: SeriesLineStyle;
   areaStyle: AreaStyle;

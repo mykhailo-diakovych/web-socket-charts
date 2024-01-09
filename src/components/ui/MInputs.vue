@@ -11,26 +11,20 @@
   </div>
   <div class="w-3/12 flex flex-col">
     <template v-if="isPositive">
-      <button class="text-[18px]" @click="$store.commit('plusMoneyBet')">
-        +
-      </button>
-      <button class="text-[18px]" @click="$store.commit('minusMoneyBet')">
-        -
-      </button>
+      <button class="text-[18px]" @click="plusMoneyBet">+</button>
+      <button class="text-[18px]" @click="minusMoneyBet">-</button>
     </template>
     <template v-else>
-      <button class="text-[18px]" @click="$store.commit('plusTimeBet')">
-        +
-      </button>
-      <button class="text-[18px]" @click="$store.commit('minusTimeBet')">
-        -
-      </button>
+      <button class="text-[18px]" @click="plusTimeBet">+</button>
+      <button class="text-[18px]" @click="minusTimeBet">-</button>
     </template>
   </div>
 </template>
 
 <script setup lang="ts">
 import { defineProps } from "vue";
+import { useChartStore } from "@/store";
+
 defineProps({
   modelValue: {
     type: Number,
@@ -41,6 +35,9 @@ defineProps({
     required: true,
   },
 });
+
+const { plusMoneyBet, minusMoneyBet, plusTimeBet, minusTimeBet } =
+  useChartStore();
 </script>
 
 <style scoped>

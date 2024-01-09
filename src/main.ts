@@ -3,9 +3,11 @@ import App from "./App.vue";
 import VChart from "vue-echarts";
 import "echarts";
 import "./main.css";
-import { store } from "@/store";
+import { createPinia } from "pinia";
 
 const app = createApp(App);
-app.use(store);
+const pinia = createPinia();
+
+app.use(pinia);
 app.component("VChart", VChart);
 app.mount("#app");
