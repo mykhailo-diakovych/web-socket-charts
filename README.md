@@ -1,6 +1,6 @@
 # chart-websocket
 
-https://raw.githubusercontent.com/mykhailo-diakovych/clothes-preview/src/assets/video/preview-video.mov
+https://github.com/mykhailo-diakovych/web-socket-charts/assets/48382527/87c59439-b8b4-4c68-90b8-f88c102cd80b
 
 ## Project setup
 ```
