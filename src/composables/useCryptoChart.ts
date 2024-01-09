@@ -22,13 +22,13 @@ import { getChartWebSocketLink } from "@/utils/get-web-socket";
 
 export const useCryptoChart = () => {
   const loading = ref(false);
-  const price = ref<number[] | number>(0); // price cryprocurrency for labels
-  const labels = ref([]); // all xAxis
-  const dataPoints = ref([]); // all yAxis
-  const data = ref([]); // data which return webscoket
-  const click = ref(false); // need for buttons
+  const cryptoPrice = ref<number[] | number>(0); // price cryptocurrency for labels
+  const labels = ref([]); // all xAxis values
+  const dataPoints = ref([]); // all yAxis values
+  const webSocketData = ref([]); // data which return webscoket
+  const isClick = ref(false);
   const clickPosition = ref<ClickPosition>({
-    // need for create dots
+    // for create dots
     x: 0,
     y: 0,
   });
@@ -54,15 +54,15 @@ export const useCryptoChart = () => {
   const linesArray = ref(chartData.value.series[0].markLine.data);
 
   // for select coins
-  const selectedValue = ref(SELECT_KEYS.BTC_KEY);
+  const selectedCryptoPair = ref(SELECT_KEYS.BTC_KEY);
 
   const colorMarker = ref("");
 
-  let ws = new WebSocket(getChartWebSocketLink(selectedValue.value));
+  let ws = new WebSocket(getChartWebSocketLink(selectedCryptoPair.value));
 
   ws.onmessage = (event) => {
-    data.value = JSON.parse(event.data);
-    grabData(data.value.k);
+    webSocketData.value = JSON.parse(event.data);
+    grabData(webSocketData.value.k);
     generateLabels();
     calculateMinAxis();
     gridChart();
@@ -70,19 +70,20 @@ export const useCryptoChart = () => {
 
   const grabData = (k: WebSocketDataK) => {
     if (typeChart.value === CHART_TYPE.LINE) {
-      price.value = formatNumber(k.o);
-      dataPoints.value = [...dataPoints.value, price.value];
+      cryptoPrice.value = formatNumber(k.o);
+      dataPoints.value = [...dataPoints.value, cryptoPrice.value];
       chartData.value.series[0].data = dataPoints.value;
-      chartData.value.series[0].markLine.data[0].yAxis = price.value; // add horizontal line with current price
-      chartData.value.series[0].markPoint.data[0].yAxis = price.value; // add  point to end line
+      chartData.value.series[0].markLine.data[0].yAxis = cryptoPrice.value; // add horizontal line with current price
+      chartData.value.series[0].markPoint.data[0].yAxis = cryptoPrice.value; // add  point to end line
     }
     if (typeChart.value === CHART_TYPE.CANDLESTICK) {
-      price.value = [k.o, k.c, k.l, k.h];
-      dataPoints.value.push(price.value);
+      cryptoPrice.value = [k.o, k.c, k.l, k.h];
+      dataPoints.value.push(cryptoPrice.value);
       chartData.value.series[0].data = dataPoints.value;
     }
     chartData.value.title.subtext = formatNumber(Number(k.o)); // show price sub pair/name
-    chartData.value.title.text = selectedValue.value.toUpperCase() + "/USDT"; // show  pair/name
+    chartData.value.title.text =
+      selectedCryptoPair.value.toUpperCase() + "/USDT"; // show  pair/name
   };
 
   const getSameDotOptions = () => {
@@ -141,11 +142,12 @@ export const useCryptoChart = () => {
       dateConvert();
     if (typeChart.value === CHART_TYPE.LINE) {
       clickPosition.value.y =
-        chartData.value.series[0].markPoint.data[0].yAxis = price.value;
+        chartData.value.series[0].markPoint.data[0].yAxis = cryptoPrice.value;
     }
     if (typeChart.value === CHART_TYPE.CANDLESTICK) {
       clickPosition.value.y =
-        chartData.value.series[0].markPoint.data[0].yAxis = price.value[0];
+        chartData.value.series[0].markPoint.data[0].yAxis =
+          cryptoPrice.value[0];
     }
   };
 
@@ -173,7 +175,7 @@ export const useCryptoChart = () => {
 
     store.commit("addWinnerBet", store.state.moneyBet);
     store.commit("calculateCurrentBalance", store.state.moneyBet);
-    timer(isPositive);
+    launchBetTimer(isPositive);
   };
 
   const positiveNewDot = () => {
@@ -184,13 +186,13 @@ export const useCryptoChart = () => {
     createNewDot(false);
   };
 
-  const timer = (bool: boolean) => {
-    if (!click.value) {
-      click.value = true;
+  const launchBetTimer = (bool: boolean) => {
+    if (!isClick.value) {
+      isClick.value = true;
       const interval = setInterval(() => {
         if (store.state.time >= store.state.timeBet) {
           store.commit("clearTime");
-          click.value = false;
+          isClick.value = false;
           calcAllDots(bool);
           dotsArray.value.splice(
             1,
@@ -251,7 +253,7 @@ export const useCryptoChart = () => {
   const fetchStarterGraphic = async (
     times = 120,
     interval = "1s",
-    symbol = selectedValue.value
+    symbol = selectedCryptoPair.value
   ) => {
     const correctedSymbol = symbol.toUpperCase() + "USDT";
     loading.value = true;
@@ -283,13 +285,13 @@ export const useCryptoChart = () => {
     };
     ws.close();
     clearDataForNewGraphic();
-    await fetchStarterGraphic(120, "1s", selectedValue.value);
+    await fetchStarterGraphic(120, "1s", selectedCryptoPair.value);
     ws = new WebSocket(
-      `${API_LINKS.WEB_SOCKET_LINK}${selectedValue.value}usdt@kline_1s`
+      `${API_LINKS.WEB_SOCKET_LINK}${selectedCryptoPair.value}usdt@kline_1s`
     );
     ws.onmessage = (event) => {
-      data.value = JSON.parse(event.data);
-      grabData(data.value.k);
+      webSocketData.value = JSON.parse(event.data);
+      grabData(webSocketData.value.k);
       generateLabels();
       calculateMinAxis();
     };
@@ -300,7 +302,7 @@ export const useCryptoChart = () => {
     webSocketRelaunch,
     positiveNewDot,
     negativeNewDot,
-    selectedValue,
+    selectedCryptoPair,
     typeChart,
     loading,
     activeClass,

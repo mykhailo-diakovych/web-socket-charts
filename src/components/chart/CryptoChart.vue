@@ -32,7 +32,7 @@ const {
   webSocketRelaunch,
   positiveNewDot,
   negativeNewDot,
-  selectedValue,
+  selectedCryptoPair,
   typeChart,
   activeClass,
   loading,
@@ -40,7 +40,7 @@ const {
 } = useCryptoChart();
 
 const changeGraphic = (value: string) => {
-  selectedValue.value = value;
+  selectedCryptoPair.value = value;
 };
 const changeTypeLine = (value: ChartTypeValue) => {
   activeClass.value = value === CHART_TYPE.LINE;
@@ -48,7 +48,7 @@ const changeTypeLine = (value: ChartTypeValue) => {
   chartData.value.series[0].type = typeChart.value;
 };
 
-watch(selectedValue, () => {
+watch(selectedCryptoPair, () => {
   webSocketRelaunch();
 });
 
